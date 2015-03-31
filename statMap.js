@@ -1,1 +1,502 @@
-var d3,LabeledPie,topojson,annyang,window,incomePie=new LabeledPie(".tip-info"),statLabels={main:["Income","Race/Ethnicity"],race:["All","Latino","White","African American","Native American","Asian","Pacific Islander","Other Race","Mixed Race"],asian:["All","Asian Indian","Bangladeshi","Cambodian","Mainland Chinese","Filipino","Hmong","Japanese","Korean","Laotian","Pakistani","Taiwanese","Thai","Vietnamese"],birth:["All","California","USA, not California","Foreign"],foreign:["All","Europe","Asia","Africa","Oceania","Latin America","Canada"],age:["All","Under 18","18 to 24","25 to 34","35 to 44","45 to 64","65 and over"],housing:["Single Family Homes","Condominiums","Owner-Occupied","Housing Types"],ownRent:["All","Owner-Occupied","Renter-Occupied"],housingUnits:["All","1-Unit Detached","1-Unit Attached","2 Units","3 to 4 Units","5 to 9 Units","10 to 19 Units","20 or more Units","Mobile Home","Boat, RV, Van, etc."]},housingStatTypes=["","sfr","condo","ownRent","housingUnits"],housingStatIndexes=[0,-1,-1,1,1],pieLabelConfig={income:{labels:["< $25K","$25K - $50K","$50K - $75K","$75K - $100K","$100K - $200K","> $200K"],domain:[0,1,2,3,4,5],range:["#a50026","#f46d43","#fee08b","#d9ef8b","#66bd63","#006837"]},race:{labels:statLabels.race.slice(1),domain:[0,1,2,3,4,5,6,7],range:["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666"]},asian:{labels:statLabels.asian.slice(1),domain:[0,1,2,3,4,5,6,7,8,9,10,11,12],range:["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99","#b15928","#cccccc"]},birth:{labels:statLabels.birth.slice(1),domain:[0,1,2],range:["#1b9e77","#d95f02","#7570b3"]},foreign:{labels:statLabels.foreign.slice(1),domain:[1,2,3,4,5,6],range:["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d"]},age:{labels:statLabels.age.slice(1),domain:[0,1,2,3,4,5],range:["#a50026","#f46d43","#fee08b","#d9ef8b","#66bd63","#006837"]},ownRent:{labels:statLabels.ownRent.slice(1),domain:[0,1],range:["#66bd63","#006837"]},housingUnits:{labels:statLabels.housingUnits.slice(1),domain:[0,1,2,3,4,5,6,7,8],range:["#d73027","#f46d43","#fdae61","#fee08b","#d9ef8b","#a6d96a","#66bd63","#1a9850","#006837"]}},setPieLabels=function(e,t){d3.select(".tip-info").select("svg").remove(),incomePie=new LabeledPie(".tip-info");var a=d3.scale.ordinal().domain(e[t].domain).range(e[t].range);incomePie.setLabels(e[t].labels),incomePie.setColorScale(a),d3.select(".tooltip-overlay").classed("hidden",!0)},setLegendDescription=function(e,t){var a={income:"Percentage of income tax returns with AGI greater than $200,000",race:"Percentage of # race/ethnicity",asian:"Percentage of Asians listed as #",birth:"Percentage of # Born",foreign:"Percentage of Foreign Born from #",age:"Percentage of population age #",sfr:"Median Price of Single Family Homes ($1,000,000's)",condo:"Median Price of Condominiums ($1,000,000's)",ownRent:"Percentage of Occupied Housing Units Which Are Owner-Occupied",housingUnits:"Percentage of # Housing"},n={income:"IRS Data: AGI reported on 2012 income tax returns",race:"2010 Census: Race/Ethnicity",asian:"2009-2013 ACS: National origin of Asians",birth:"2009-2013 ACS: Place of birth",foreign:"2009-2013 ACS:Regional origin of Foreign Born Population",age:"2009-2013 American Community Survey: Age",sfr:"Zillow: January, 2015",condo:"Zillow: January, 2015",ownRent:"2009-2013 ACS: Owner-Occupied Housing",housingUnits:"2009-2013 ACS: Housing Units in Structure"},i={sfr:"Median Price of Single Family Homes",condo:"Median Price of Condominiums"},s=a[e];s.indexOf("#")>=0&&(s=s.replace("#",statLabels[e][t])),d3.select(".legend-description").text(s),d3.select(".tip-description").text(n[e]),e in i&&d3.select(".tooltip-overlay-label").text(i[e])},createComboBoxes=function(){var e=statLabels.race.slice(1),t=d3.select("#race-list").selectAll("option").data(e);t.enter().append("option").attr("value",function(e,t){return t+1}).text(function(e){return e});var a=d3.select("#asian-list").selectAll("option").data(statLabels.asian);a.enter().append("option").attr("value",function(e,t){return t}).text(function(e){return e});var n=d3.select("#birth-list").selectAll("option").data(statLabels.birth.slice(1));n.enter().append("option").attr("value",function(e,t){return t+1}).text(function(e){return e});var i=d3.select("#foreign-list").selectAll("option").data(statLabels.foreign);i.enter().append("option").attr("value",function(e,t){return t}).text(function(e){return e});var s=d3.select("#age-list").selectAll("option").data(statLabels.age.slice(1));s.enter().append("option").attr("value",function(e,t){return t+1}).text(function(e){return e});var o=d3.select("#housing-list").selectAll("option").data(statLabels.housing);o.enter().append("option").attr("value",function(e,t){return t+1}).text(function(e){return e});var l=d3.select("#housing-type-list").selectAll("option").data(statLabels.housingUnits.slice(1));l.enter().append("option").attr("value",function(e,t){return t+1}).text(function(e){return e})};createComboBoxes();var createLegend=function(e,t,a){var n={percent:d3.format("%"),percentPointOne:d3.format("2.1%"),price:d3.format("1.1")};d3.select("#legend ul").remove();var i=d3.select("#legend").append("ul").attr("class","list-inline"),s=i.selectAll("li.key").data(e.range()),o=e.range()[e.range().length-1],l=e.invertExtent(o),c=l[0]<.1;s.enter().append("li").attr("class","key").style("border-top-color",String).text(function(a){var i,s=e.invertExtent(a);return i="sfr"===t||"condo"===t?(s[0]/1e6).toFixed(2):c?n.percentPointOne(s[0]):n.percent(s[0])}),setLegendDescription(t,a)},zipCodeMap=function(e,t){function a(e,t){var a=e.properties.GEOID10,n=t[a][L];return n?-1===S?+n[0]:+n[S]/+n[0]:null}function n(e){return e.properties.GEOID10+": "+e.properties.city}function i(e,t,a){a=a||t[e.properties.GEOID10][L];var n=a.slice(1);if(-1===S){d3.select(".tooltip-overlay").classed("hidden",!1),d3.select(".tip-description").classed("hidden",!1);var i=a[0]?"$"+a[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g,","):a[0];d3.select(".tooltip-overlay-text").text(i?i:"No Data")}else+a[0]>0?(d3.select(".tip-info").classed("hidden",!1),d3.select(".tip-description").classed("hidden",!1),incomePie.change(n)):(d3.select(".tip-info").classed("hidden",!0),d3.select(".tip-description").classed("hidden",!1))}function s(e){var t=topojson.feature(e,e.objects.Bay_Area),a=t.features.filter(function(e){return"94560"===e.properties.GEOID10})[0];o(a)}function o(e,t){var a=v.centroid(e),n=b.translate();b.translate([n[0]-a[0]+u/2,n[1]-a[1]+f/2]),y.translate(b.translate()),t?m.selectAll("path").transition().duration(1e3).attr("d",v):m.selectAll("path").attr("d",v)}function l(){}function c(){b.translate(d3.event.translate).scale(d3.event.scale),m.selectAll("path").attr("d",v)}function d(){var e=(d3.select(".selected"),d3.select(".selected").datum()),t=v.bounds(e),a=(t[1][0]-t[0][0],t[1][1]-t[0][1],(t[0][0]+t[1][0])/2),n=(t[0][1]+t[1][1])/2,i=h,s=[u/2-i*a,f/2-i*n];m.transition().duration(750).call(y.translate(s).scale(i).event)}var r,p,u=650,f=1e3,g=39321.6,h=91750.4,b=d3.geo.albersUsa().scale(39321.6).translate([u/2,f/2]),v=d3.geo.path().projection(b),y=d3.behavior.zoom().translate(b.translate()).scale(b.scale()).scaleExtent([g,h]).on("zoom",c),C=d3.scale.quantize().range(["#a50026","#d73027","#f46d43","#fdae61","#fee08b","#ffffbf","#d9ef8b","#a6d96a","#66bd63","#1a9850","#006837"]),m=d3.select(".right-side").append("svg").attr("width",u).attr("height",f).call(y),S=6,L="income",M=function(){var e,t={},a=topojson.feature(p,p.objects.Bay_Area);return a.features.forEach(function(a){for(e in a.properties)t[a.properties[e]]=!0}),Object.keys(t)},A=function(e){L=e},z=function(e){S=e},x=function(){var t=topojson.feature(p,p.objects.Bay_Area);C.domain(d3.extent(t.features,function(e){return a(e,r)})),e(C,L,S)},P=function(e){var t=a(e,r);return t?C(t):"#ccc"},D=function(){x(),m.selectAll("path").transition().duration(1e3).attr("fill",function(e){return P(e)})},w=function(e,t){var a,s,l,c,d=[],u=[],f=0,g=topojson.feature(p,p.objects.Bay_Area);g.features.forEach(function(a){a.properties[e]===t&&d.push(a)}),d.length>0&&(d3.selectAll(".selected").classed("selected",!1),d.forEach(function(e){for(s=e.properties.GEOID10,l=r[s][L],f=+l[0]>0?f+1:f,c=0;c<l.length;c++)u[c]=u[c]||0,u[c]+=+l[c]}),a=d.length>1?t:n(d[0]),d3.select(".tip-location").text(a),-1===S&&f>0&&(u[0]=(+u[0]/f).toFixed(0)),i(null,r,u)),m.selectAll("path")[0].forEach(function(a){a=d3.select(a),a.datum().properties[e]===t&&a.classed("selected",!0)}),d.length>0&&(u=d[0],o(u,!0))};return d3.json("data/allStats.json",function(e){r=e,d3.json("Bay_Area_Cities_topo.json",function(e){p=e;var t=[];x(),m.selectAll("path").data(topojson.feature(e,e.objects.Bay_Area).features).enter().append("path").attr("d",v).attr("stroke","black").attr("fill",function(e){return P(e)}).on("click",function(e){d3.selectAll(".selected").classed("selected",!1),d3.select(this).classed("selected",!0),d3.select(".tip-location").text(n(e)),i(e,r),t=[d3.event.x,d3.event.y]}).on("mousemove",l).append("svg:title").text(function(e){return n(e)}),s(e),d3.select(".right-side").on("click",function(){d3.event.x!==t[0]&&d3.event.y!==t[1]&&(d3.selectAll(".selected").classed("selected",!1),d3.select(".tip-info").classed("hidden",!0),d3.select(".tip-description").classed("hidden",!0),d3.select(".tip-location").text(""),d3.select(".tooltip-overlay").classed("hidden",!0)),t=[]})})}),t(pieLabelConfig,"income"),{getPropertyValues:M,setStatType:A,setStatIndex:z,updateStats:D,selectByData:w,zoomOut:d}}(createLegend,setPieLabels),getSelectionTitle=function(){var e=d3.select(".tip-location").text().split(":")[0];return e},selectByData=function(e){var t=e.match(/[0-9]/)?"GEOID10":"city";zipCodeMap.selectByData(t,e)};d3.select("#zoom-out").on("click",function(){window.event.stopPropagation(),zipCodeMap.zoomOut()});var gotoVoiceCommand=function(e){$("#select-input").val(e),selectByData(e)},showMeVoiceCommand=function(e){var t=0,a=-1;if("income"===e)t=0;else if("race"===e)t=1;else if("birth place"===e)t=2;else if("ages"===e)t=3;else if("homes"===e)t=4,a=1;else if("condos"===e)t=4,a=2;else{if("housing types"!==e)return;t=4,a=4}$("#stat-list").val(t),$("#stat-list").trigger("change"),-1!==a&&($("#housing-list").val(a),$("#housing-list").trigger("change"))},enableVoiceCommands=function(){var e={"go to *place":gotoVoiceCommand,"show me *stat":showMeVoiceCommand};annyang&&(console.log(annyang),annyang.start(),annyang.debug(),annyang.addCommands(e))};enableVoiceCommands(),$("#stat-list").on("change",function(){{var e=+d3.select("#stat-list").node().value,t=+d3.select("#race-list").node().value,a=+d3.select("#birth-list").node().value,n=(+d3.select("#foreign-list").node().value,+d3.select("#age-list").node().value),i=+d3.select("#housing-list").node().value;+d3.select("#housing-type-list").node().value}d3.select("#race-list").classed("hidden",1!==e),d3.select("#asian-list").classed("hidden",1!==e||5!==t),d3.select("#birth-list").classed("hidden",2!==e),d3.select("#foreign-list").classed("hidden",2!==e||3!==a),d3.select("#age-list").classed("hidden",3!==e),d3.select("#housing-list").classed("hidden",4!==e),d3.select("#housing-type-list").classed("hidden",4!==e||4!==i),0===e?(zipCodeMap.setStatType("income"),zipCodeMap.setStatIndex(6),setPieLabels(pieLabelConfig,"income"),selectByData(getSelectionTitle())):1===e?5===t?selectAsian():(zipCodeMap.setStatType("race"),zipCodeMap.setStatIndex(t),setPieLabels(pieLabelConfig,"race"),selectByData(getSelectionTitle())):2===e?3===a?selectForeign():(zipCodeMap.setStatType("birth"),zipCodeMap.setStatIndex(a),setPieLabels(pieLabelConfig,"birth"),selectByData(getSelectionTitle())):3===e?(zipCodeMap.setStatType("age"),zipCodeMap.setStatIndex(n),setPieLabels(pieLabelConfig,"age"),selectByData(getSelectionTitle())):4===e&&(4===i?selectHousingUnits():(d3.select(".tooltip-overlay").classed("hidden",!1),zipCodeMap.setStatType(housingStatTypes[i]),zipCodeMap.setStatIndex(housingStatIndexes[i]),setPieLabels(pieLabelConfig,"ownRent"),selectByData(getSelectionTitle()))),zipCodeMap.updateStats()}),d3.select("#race-list").on("change",function(){var e=+d3.select("#race-list").node().value;d3.select("#asian-list").classed("hidden",5!==e),5===e?selectAsian():(zipCodeMap.setStatType("race"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"race"),selectByData(getSelectionTitle())),zipCodeMap.updateStats()});var selectAsian=function(){var e=+d3.select("#asian-list").node().value;0===e?(zipCodeMap.setStatType("race"),zipCodeMap.setStatIndex(5),setPieLabels(pieLabelConfig,"race"),selectByData(getSelectionTitle())):(zipCodeMap.setStatType("asian"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"asian"),selectByData(getSelectionTitle()))};d3.select("#asian-list").on("change",function(){selectAsian(),zipCodeMap.updateStats()});var selectForeign=function(){var e=+d3.select("#foreign-list").node().value;0===e?(zipCodeMap.setStatType("birth"),zipCodeMap.setStatIndex(3),setPieLabels(pieLabelConfig,"birth"),selectByData(getSelectionTitle())):(zipCodeMap.setStatType("foreign"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"foreign"),selectByData(getSelectionTitle()))};d3.select("#foreign-list").on("change",function(){selectForeign(),zipCodeMap.updateStats()}),d3.select("#birth-list").on("change",function(){var e=+d3.select("#birth-list").node().value;d3.select("#foreign-list").classed("hidden",3!==e),3===e?selectForeign():(zipCodeMap.setStatType("birth"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"birth"),selectByData(getSelectionTitle())),zipCodeMap.updateStats()}),d3.select("#age-list").on("change",function(){var e=+d3.select("#age-list").node().value;zipCodeMap.setStatType("age"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"age"),selectByData(getSelectionTitle()),zipCodeMap.updateStats()});var selectHousingUnits=function(){var e=+d3.select("#housing-type-list").node().value;zipCodeMap.setStatType("housingUnits"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"housingUnits"),selectByData(getSelectionTitle())};$("#housing-list").on("change",function(){var e=+d3.select("#housing-list").node().value;if(d3.select("#housing-type-list").classed("hidden",4!==e),4===e){var t=+d3.select("#housing-type-list").node().value;zipCodeMap.setStatType("housingUnits"),zipCodeMap.setStatIndex(t),setPieLabels(pieLabelConfig,"housingUnits")}else zipCodeMap.setStatType(housingStatTypes[e]),zipCodeMap.setStatIndex(housingStatIndexes[e]),setPieLabels(pieLabelConfig,"ownRent");selectByData(getSelectionTitle()),zipCodeMap.updateStats()}),d3.select("#housing-type-list").on("change",function(){var e=+d3.select("#housing-type-list").node().value;zipCodeMap.setStatType("housingUnits"),zipCodeMap.setStatIndex(e),setPieLabels(pieLabelConfig,"housingUnits"),selectByData(getSelectionTitle()),zipCodeMap.updateStats()}),d3.select("#select-button").on("click",function(){window.event.stopPropagation();var e=d3.select("#select-input").node().value,t=e.match(/[0-9]/)?"GEOID10":"city";zipCodeMap.selectByData(t,e)}),$("#select-input").on("propertychange",function(){window.event.stopPropagation(),window.event.preventDefault();var e=d3.select("#select-input").node().value,t=e.match(/[0-9]/)?"GEOID10":"city";return zipCodeMap.selectByData(t,e),!1}),$("#select-input").bind("input propertychange",function(e){e.stopPropagation(),window.event.preventDefault();var t=d3.select("#select-input").node().value,a=t.match(/[0-9]/)?"GEOID10":"city";return zipCodeMap.selectByData(a,t),!1}),$("#select-input").on("val.changed",function(e){e.stopPropagation();var t=d3.select("#select-input").node().value,a=t.match(/[0-9]/)?"GEOID10":"city";zipCodeMap.selectByData(a,t)}),$(document).ready(function(){$(window).keydown(function(e){return 13==e.keyCode?(e.preventDefault(),!1):void 0})}),$("#select-input").autoComplete({minChars:1,source:function(e,t){e=e.toLowerCase();var a,n=zipCodeMap.getPropertyValues(),i=[];for(a=0;a<n.length;a++)~n[a].toLowerCase().indexOf(e)&&i.push(n[a]);t(i)}});
+var annyang;
+var d3;
+var LabeledPie;
+var window;
+var ZipCodeMap;
+
+(function() {
+
+  var incomePie = new LabeledPie(".tip-info");
+
+  var statLabels = {
+    //stat: ["Income", "Race/Ethnicity", "Place of Birth", "Age", "Housing"],
+    race: ["All", "Latino", "White", "African American", "Native American", "Asian",
+      "Pacific Islander", "Other Race", "Mixed Race"
+    ],
+    asian: ["All", "Asian Indian", "Bangladeshi", "Cambodian", "Mainland Chinese", "Filipino", "Hmong",
+      "Japanese", "Korean", "Laotian", "Pakistani", "Taiwanese", "Thai", "Vietnamese"
+    ],
+    birth: ["All", "California", "USA, not California", "Foreign"],
+    foreign: ["All", "Europe", "Asia", "Africa", "Oceania", "Latin America", "Canada"],
+    age: ["All", "Under 18", "18 to 24", "25 to 34", "35 to 44", "45 to 64", "65 and over"],
+    housing: ["", "Single Family Homes", "Condominiums", "Apartments", "Owner-Occupied", "Housing Types"],
+    ownRent: ["All", "Owner-Occupied", "Renter-Occupied"],
+    housingUnits: ["All", "1-Unit Detached", "1-Unit Attached", "2 Units", "3 to 4 Units", "5 to 9 Units",
+      "10 to 19 Units", "20 or more Units", "Mobile Home", "Boat, RV, Van, etc."
+    ],
+    rent: ["All", "Studio", "One Bedroom", "Two Bedroom", "Three Bedroom"]
+  };
+
+  var pieLabelConfig = {
+    income: {
+      labels: ["< $25K", "$25K - $50K", "$50K - $75K", "$75K - $100K", "$100K - $200K", "> $200K"],
+      domain: [0, 1, 2, 3, 4, 5],
+      range: ["#a50026", "#f46d43", "#fee08b", "#d9ef8b", "#66bd63", "#006837"]
+    },
+    race: {
+      labels: statLabels.race.slice(1),
+      domain: [0, 1, 2, 3, 4, 5, 6, 7],
+      range: ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d", "#666666"]
+    },
+    asian: {
+      labels: statLabels.asian.slice(1),
+      domain: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      range: ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928", "#cccccc"]
+    },
+    birth: {
+      labels: statLabels.birth.slice(1),
+      domain: [0, 1, 2],
+      range: ["#1b9e77", "#d95f02", "#7570b3"]
+    },
+    foreign: {
+      labels: statLabels.foreign.slice(1),
+      domain: [1, 2, 3, 4, 5, 6],
+      range: ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d"]
+    },
+    age: {
+      labels: statLabels.age.slice(1),
+      domain: [0, 1, 2, 3, 4, 5],
+      range: ["#a50026", "#f46d43", "#fee08b", "#d9ef8b", "#66bd63", "#006837"]
+    },
+    ownRent: {
+      labels: statLabels.ownRent.slice(1),
+      domain: [0, 1],
+      range: ["#66bd63", "#006837"]
+    },
+    housingUnits: {
+      labels: statLabels.housingUnits.slice(1),
+      domain: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      range: ["#d73027", "#f46d43", "#fdae61", "#fee08b", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850", "#006837"]
+    }
+  };
+
+  var setPieLabels = function(labelConfig, key) {
+    // reset income pie
+    d3.select(".tip-info").select("svg").remove();
+    incomePie = new LabeledPie(".tip-info");
+
+    var color = d3.scale.ordinal()
+      .domain(labelConfig[key].domain)
+      .range(labelConfig[key].range);
+
+    incomePie.setLabels(labelConfig[key].labels);
+    incomePie.setColorScale(color);
+    d3.select(".tooltip-overlay").classed("hidden", true);
+  };
+
+  var setLegendDescription = function(statType, statIndex) {
+    var mapLegends = {
+      income: "Percentage of income tax returns with AGI greater than $200,000",
+      race: "Percentage of # race/ethnicity",
+      asian: "Percentage of Asians listed as #",
+      birth: "Percentage of # Born",
+      foreign: "Percentage of Foreign Born from #",
+      age: "Percentage of population age #",
+      sfr: "Median Price of Single Family Homes ($1,000,000's)",
+      condo: "Median Price of Condominiums ($1,000,000's)",
+      ownRent: "Percentage of Occupied Housing Units Which Are Owner-Occupied",
+      housingUnits: "Percentage of # Housing",
+      employment: "Unemployment Rate",
+      rent: "Average Rental Rates for # Units"
+    };
+
+    var pieLegends = {
+      income: "IRS Data: AGI reported on 2012 income tax returns",
+      race: "2010 Census: Race/Ethnicity",
+      asian: "2009-2013 ACS: National origin of Asians",
+      birth: "2009-2013 ACS: Place of birth",
+      foreign: "2009-2013 ACS:Regional origin of Foreign Born Population",
+      age: "2009-2013 American Community Survey: Age",
+      sfr: "Zillow: January, 2015",
+      condo: "Zillow: January, 2015",
+      ownRent: "2009-2013 ACS: Owner-Occupied Housing",
+      housingUnits: "2009-2013 ACS: Housing Units in Structure",
+      employment: "2009-2013 ACS: Unemployment Rate",
+      rent: "MyApartmentMap.com: March, 2015"
+    };
+
+    var overlayDescription = {
+      sfr: "Median Price of Single Family Homes",
+      condo: "Median Price of Condominiums",
+      rent: "Average Monthly Rent for # Apartments"
+    };
+
+    var description = mapLegends[statType];
+    if (description.indexOf('#') >= 0) {
+      description = description.replace('#', statLabels[statType][statIndex]);
+    }
+    d3.select(".legend-description").text(description);
+    d3.select(".tip-description").text(pieLegends[statType]);
+    if (statType in overlayDescription) {
+      description = overlayDescription[statType];
+      if (description.indexOf('#') >= 0) {
+        description = description.replace('#', statLabels[statType][statIndex]);
+      }
+      d3.select(".tooltip-overlay-label").text(description);
+    }
+  };
+
+  var getMenuId = function(name) {
+    name = name.replace(/[A-Z]/g, function(c) {
+      return '-' + c.toLowerCase();
+    });
+    return '#' + name + '-list';
+  };
+
+  var createComboBoxes = function() {
+    var fullListNames = ['foreign', 'asian'];
+    var menuNames = Object.keys(statLabels);
+    menuNames.forEach(function(name) {
+      var omitFirst = fullListNames.indexOf(name) === -1;
+      var menu = d3.select(getMenuId(name)).selectAll('option')
+        .data(statLabels[name].slice(omitFirst ? 1 : 0));
+      menu.enter().append('option')
+        .attr('value', function(d, i) {
+          return omitFirst ? i + 1 : i;
+        })
+        .text(function(d) {
+          return d;
+        });
+    });
+  };
+
+  createComboBoxes();
+
+  var createLegend = function(colors, statType, statIndex) {
+    var formats = {
+      percent: d3.format('%'),
+      percentPointOne: d3.format('2.1%'),
+      price: d3.format('1.1')
+    };
+
+    d3.select("#legend ul").remove();
+    var legend = d3.select('#legend')
+      .append('ul')
+      .attr('class', 'list-inline');
+
+    var keys = legend.selectAll('li.key')
+      .data(colors.range());
+
+    // do we need more precision?
+    var endRange = colors.range()[colors.range().length - 1];
+    var maxDomain = colors.invertExtent(endRange);
+    var needMorePrecision = maxDomain[0] < 0.1;
+
+    keys.enter().append('li')
+      .attr('class', 'key')
+      .style('border-top-color', String)
+      .text(function(d) {
+        var r = colors.invertExtent(d);
+        var str;
+        if (statType === "rent") {
+          str = r[0].toFixed(0);
+        } else if (statType === "sfr" || statType === "condo") {
+          str = (r[0] / 1000000).toFixed(2);
+        } else {
+          str = needMorePrecision ?
+            formats.percentPointOne(r[0]) : formats.percent(r[0]);
+        }
+        return str;
+      });
+    setLegendDescription(statType, statIndex);
+  };
+
+  var showDetails = function(statIndex, values, counts, detailCode) {
+    if (detailCode > 0) {
+      d3.select(".tooltip-overlay").classed("hidden", false);
+      d3.select(".tip-description").classed("hidden", false);
+      var value = (detailCode === 2) ? values[statIndex] : values[0];
+      value = value ? "$" + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : value;
+      d3.select(".tooltip-overlay-text").text(value || "No Data");
+    } else if (+values[0] > 0) {
+      d3.select(".tip-info").classed("hidden", false);
+      d3.select(".tip-description").classed("hidden", false);
+      incomePie.change(counts);
+    } else {
+      d3.select(".tip-info").classed("hidden", true);
+      d3.select(".tip-description").classed("hidden", false);
+    }
+  };
+
+  var statMap = new ZipCodeMap(createLegend, showDetails);
+  setPieLabels(pieLabelConfig, "income");
+
+  var getSelectionTitle = function() {
+    var retVal = d3.select(".tip-location").text().split(':')[0];
+    return retVal;
+  };
+
+  var selectByData = function(value) {
+    var key = value.match(/[0-9]/) ? "GEOID10" : "city";
+    statMap.selectByData(key, value);
+  };
+
+  d3.select("#zoom-out")
+    .on("click", function() {
+      window.event.stopPropagation();
+      statMap.zoomOut();
+    });
+
+  var gotoVoiceCommand = function(place) {
+    $('#select-input').val(place);
+    selectByData(place);
+  };
+
+  var showMeVoiceCommand = function(stat) {
+    var statIndex = 0;
+    var housingIndex = -1;
+    if (stat === "income") {
+      statIndex = 0;
+    } else if (stat === "race") {
+      statIndex = 1;
+    } else if (stat === "birth place") {
+      statIndex = 2;
+    } else if (stat === "ages") {
+      statIndex = 3;
+    } else if (stat === "homes") {
+      statIndex = 4;
+      housingIndex = 1;
+    } else if (stat === "condos") {
+      statIndex = 4;
+      housingIndex = 2;
+    } else if (stat === "housing types") {
+      statIndex = 4;
+      housingIndex = 4;
+    } else {
+      return;
+    }
+    $("#stat-list").val(statIndex);
+    $("#stat-list").trigger("change");
+    if (housingIndex !== -1) {
+      $("#housing-list").val(housingIndex);
+      $("#housing-list").trigger("change");
+    }
+  };
+
+  var enableVoiceCommands = function() {
+    var commands = {
+      'go to *place': gotoVoiceCommand,
+      'show me *stat': showMeVoiceCommand
+    };
+    if (annyang) {
+      console.log(annyang);
+      annyang.start();
+      annyang.debug();
+      annyang.addCommands(commands);
+    }
+  };
+
+  //enableVoiceCommands();
+
+  var menuMap = {
+    name: "stat",
+    children: [{
+      name: "income",
+      statIndex: 6,
+      noMenu: true
+    }, {
+      name: "race",
+      children: [{
+        name: "asian",
+        index: 5
+      }]
+    }, {
+      name: "birth",
+      children: [{
+        name: "foreign",
+        index: 3
+      }]
+    }, {
+      name: "age"
+    }, {
+      name: "housing",
+      children: [{
+        name: "rent",
+        index: 3
+      }, {
+        name: "housingUnits",
+        index: 5
+      }],
+      statTypes: ["", "sfr", "condo", "rent", "ownRent", "housingUnits"],
+      statIndexes: [0, 0, 0, 0, 1, 0],
+      detailCodes: [0, 1, 1, 2, 0, 0],
+      pieLabels: ["", "ownRent", "ownRent", "ownRent", "ownRent", "housingUnits"]
+    }]
+  };
+
+
+  var getAllMenuNames = function() {
+    var result = [];
+    var menu;
+    var subMenu;
+    var i;
+    var children = menuMap.children;
+    result.push(menuMap.name);
+    for (i = 0; i < children.length; i++) {
+      menu = children[i];
+      if (!(menu.noMenu)) {
+        result.push(menu.name);
+        if (menu.children) {
+          for (var j = 0; j < menu.children.length; j++) {
+            subMenu = menu.children[j];
+            result.push(subMenu.name);
+          }
+        }
+      }
+    }
+    return result;
+  };
+
+  var respondToMenus = function() {
+    var configureMapAndPie = function(type, index, code, labelId) {
+      statMap.setStatType(type);
+      statMap.setStatIndex(index);
+      statMap.setDetailCode(code);
+      setPieLabels(pieLabelConfig, labelId);
+    };
+    var getSubMenuforLiveIndex = function(subMenuArray, liveIndex) {
+      if (subMenuArray) {
+        for (var k = 0; k < subMenuArray.length; k++) {
+          if (subMenuArray[k].index === liveIndex) {
+            return subMenuArray[k];
+          }
+        }
+      }
+      return null;
+    };
+    var statIndex = +d3.select(getMenuId(menuMap.name)).node().value;
+    var children = menuMap.children;
+    var menu;
+    var liveIndex;
+    var subMenu;
+    var subMenuArray;
+    var subMenuLiveIndex;
+    var i;
+    for (i = 0; i < children.length; i++) {
+      menu = children[i];
+      if (!(menu.noMenu)) {
+        menu.liveIndex = d3.select(getMenuId(menu.name));
+        menu.liveIndex.classed("hidden", statIndex !== i);
+        if (menu.children) {
+          subMenuArray = [];
+          for (var j = 0; j < menu.children.length; j++) {
+            subMenu = menu.children[j];
+            subMenu.liveIndex = d3.select(getMenuId(subMenu.name));
+            subMenu.liveIndex.classed("hidden", statIndex !== i ||
+              +menu.liveIndex.node().value !== subMenu.index);
+            subMenuArray.push(subMenu);
+          }
+        } else {
+          subMenuArray = null;
+        }
+      }
+      if (statIndex === i) {
+        liveIndex = (menu && menu.liveIndex) ? +menu.liveIndex.node().value : menu.statIndex;
+        subMenu = getSubMenuforLiveIndex(subMenuArray, liveIndex);
+        if (subMenu && subMenu.index === liveIndex) {
+          subMenuLiveIndex = +subMenu.liveIndex.node().value;
+          if (subMenuLiveIndex === 0) {
+            configureMapAndPie(menu.name, liveIndex, menu.detailCodes ? menu.detailCodes[liveIndex] : 0, menu.name);
+          } else {
+            configureMapAndPie(
+              menu.statTypes ? menu.statTypes[liveIndex] : subMenu.name,
+              subMenuLiveIndex,
+              menu.detailCodes ? menu.detailCodes[liveIndex] : 0,
+              menu.pieLabels ? menu.pieLabels[liveIndex] : subMenu.name);
+          }
+        } else {
+          configureMapAndPie(
+            menu.statTypes ? menu.statTypes[liveIndex] : menu.name,
+            menu.statIndexes && menu.statIndexes[liveIndex] ? menu.statIndexes[liveIndex] : liveIndex,
+            menu.detailCodes ? menu.detailCodes[liveIndex] : 0,
+            menu.pieLabels ? menu.pieLabels[liveIndex] : menu.name);
+        }
+        selectByData(getSelectionTitle());
+        statMap.updateStats();
+      }
+    }
+  };
+
+  var addMenuListeners = function() {
+    getAllMenuNames().forEach(function(menuId) {
+      $(getMenuId(menuId)).on("change", function() {
+        respondToMenus();
+      });
+    });
+  };
+
+  addMenuListeners();
+
+  d3.select("#select-button")
+    .on("click", function() {
+      window.event.stopPropagation();
+      var value = d3.select("#select-input").node().value;
+      var key = value.match(/[0-9]/) ? "GEOID10" : "city";
+      statMap.selectByData(key, value);
+    });
+
+  $("#select-input")
+    .on("propertychange", function() {
+      window.event.stopPropagation();
+      window.event.preventDefault();
+      var value = d3.select("#select-input").node().value;
+      var key = value.match(/[0-9]/) ? "GEOID10" : "city";
+      statMap.selectByData(key, value);
+      return false;
+    });
+
+  $("#select-input").bind('input propertychange', function(event) {
+    event.stopPropagation();
+    window.event.preventDefault();
+    var value = d3.select("#select-input").node().value;
+    var key = value.match(/[0-9]/) ? "GEOID10" : "city";
+    statMap.selectByData(key, value);
+    return false;
+  });
+
+  $("#select-input").on('val.changed', function(event) {
+    event.stopPropagation();
+    var value = d3.select("#select-input").node().value;
+    var key = value.match(/[0-9]/) ? "GEOID10" : "city";
+    statMap.selectByData(key, value);
+  });
+
+  $(document).ready(function() {
+    $(window).keydown(function(event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        return false;
+      }
+    });
+  });
+
+  /*
+  // hack to get auto-complete programmatic change to #select-input noticed
+  (function ($) {
+    var originalVal = $.fn.val;
+    $.fn.val = function () {
+      var result = originalVal.apply(this, arguments);
+      if (arguments.length > 0) {
+        $(this).trigger('val.changed');
+      }
+      return result;
+    };
+  })(jQuery);*/
+
+  $("#select-input").autoComplete({
+    minChars: 1,
+    source: function(term, suggest) {
+      term = term.toLowerCase();
+      var i;
+      var choices = statMap.getPropertyValues();
+      var matches = [];
+      for (i = 0; i < choices.length; i++) {
+        if (~choices[i].toLowerCase().indexOf(term)) {
+          matches.push(choices[i]);
+        }
+      }
+      suggest(matches);
+    }
+  });
+
+}());

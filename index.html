@@ -25,6 +25,8 @@
         <option value="2">Place of Birth</option>
         <option value="3">Age</option>
         <option value="4">Housing</option>
+<!--         <option value="5">Unemployment</option>
+ -->
       </select>
       <select id="birth-list" class="hidden"></select>
       <select id="race-list" class="hidden"></select>
@@ -32,7 +34,8 @@
       <select id="foreign-list" class="hidden"></select>
       <select id="age-list" class="hidden"></select>
       <select id="housing-list" class="hidden"></select>
-      <select id="housing-type-list" class="hidden"></select>
+      <select id="housing-units-list" class="hidden"></select>
+      <select id="rent-list" class="hidden"></select>
       <br>
       <input id="select-input" type="text" placeholder="City or Zip Code">
       <button id="select-button" type="button">Select</button>
@@ -57,7 +60,20 @@
   <div class="right-side"></div>
 
   <script type="text/javascript" src="labeledPie.js"></script>
+  <script type="text/javascript" src="zipCodeMap.js"></script>
   <script type="text/javascript" src="statMap.js"></script>
+  <script async src="//www.google-analytics.com/analytics.js"></script>
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-61369418-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
 </body>
 
 </html>

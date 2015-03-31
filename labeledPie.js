@@ -1,1 +1,347 @@
-var d3;!function(t,e){"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?module.exports=e():t.LabeledPie=e()}(this,function(){var t=function(e){function r(t){return[t.x,t.y]}function n(t,e,n){var i,s,a,c,o,h=n-e;u.select(".lines").selectAll("polyline").each(function(e,r){r===t&&(o=this)}),i=o.points,s=r(i.getItem(0)),a=r(i.getItem(1)),c=r(i.getItem(2)),d3.select(o).transition().duration(500).attrTween("points",function(){return function(t){return a[1]=e+t*h,c[1]=e+t*h,[s,a,c]}})}function i(t,e){var r=t.transform.baseVal.getItem(0).matrix,n=r.f,i=[r.e,r.f],s=e-n;d3.select(t).transition().duration(500).attrTween("transform",function(){return function(t){return i[1]=n+t*s,"translate("+i+")"}})}function s(t){for(var e,r,s=1/0,a=0;a<t.length;a++){e=t[a].transform.baseVal.getItem(0).matrix,r=e.f;var u=t[a].getBBox().height;r>s-u&&(r=s-u,i(t[a],r),n(+t[a].dataset.index,e.f,r)),s=r}}function a(){var t=[],e=[];u.select(".labels").selectAll("text").each(function(r,n){var i=this.style.cssText;i&&!i.match("opacity: 0")&&(this.dataset.index=n,i.match("text-anchor: end")?t.push(this):e.push(this))});try{s(t),s(e.reverse())}catch(r){}return!0}var u=d3.select(e).append("svg").append("g");this.svg=u,this.svgWidth=450,this.svgHeight=190,d3.select(e).select("svg").attr("width",this.svgWidth).attr("height",this.svgHeight),this.svg.append("g").attr("class","slices"),this.svg.append("g").attr("class","labels"),this.svg.append("g").attr("class","innerLabels"),this.svg.append("g").attr("class","lines"),this.width=160,this.height=160,this.radius=Math.min(this.width,this.height)/2,this.pie=d3.layout.pie().sort(null),this.arc=d3.svg.arc().outerRadius(.8*this.radius).innerRadius(.4*this.radius),this.outerArc=d3.svg.arc().innerRadius(.85*this.radius).outerRadius(.85*this.radius),this.edgeArc=d3.svg.arc().innerRadius(.8*this.radius).outerRadius(.8*this.radius),this.minimumDisplayedPercentage=6,this.svg.attr("transform","translate("+this.svgWidth/2+","+this.svgHeight/2+")"),this.minimumDisplayedLabel=3,t.prototype.setLabels=function(t){this.labels=t},t.prototype.setColorScale=function(t){this.color=t},t.prototype.change=function(t){function e(t){return Math.round(t.value/p*100)}function r(t){return t.startAngle+(t.endAngle-t.startAngle)/2}var n=this.radius,i=this.labels,s=this.minimumDisplayedPercentage,u=this.arc,c=this.outerArc,o=this.edgeArc,h=this.svg,l=this.pie,d=this.color,f=this.minimumDisplayedLabel,p=d3.sum(t),v=h.select(".slices").selectAll("path.slice").data(l(t));v.enter().insert("path").style("fill",function(t,e){return d(e)}).attr("class","slice"),v.transition().duration(1e3).attrTween("d",function(t){this._current=this._current||t;var e=d3.interpolate(this._current,t);return this._current=e(0),function(t){return u(e(t))}}),v.exit().remove();var g=h.select(".labels").selectAll("text").data(l(t));g.enter().append("text").attr("dy",".35em").text(function(t,e){return i[e]}),g.transition().duration(1e3).style("opacity",function(t){return e(t)<f?0:1}).attrTween("transform",function(t){this._current=this._current||t;var e=d3.interpolate(this._current,t);return this._current=e(0),function(t){var i=e(t),s=c.centroid(i);return s[0]=n*(r(i)<Math.PI?1:-1),"translate("+s+")"}}).styleTween("text-anchor",function(t){this._current=this._current||t;var e=d3.interpolate(this._current,t);return this._current=e(0),function(t){var n=e(t);return r(n)<Math.PI?"start":"end"}}),g.exit().remove(),d3.timer(a,1e3);var m=h.select(".lines").selectAll("polyline").data(l(t));m.enter().append("polyline"),m.transition().duration(1e3).style("opacity",function(t){return e(t)<f?0:.3}).attrTween("points",function(t){this._current=this._current||t;var e=d3.interpolate(this._current,t);return this._current=e(0),function(t){var i=e(t),s=c.centroid(i);return s[0]=.95*n*(r(i)<Math.PI?1:-1),[o.centroid(i),c.centroid(i),s]}}),m.exit().remove();var y=h.select(".innerLabels").selectAll("text").data(l(t));y.enter().insert("text").attr("dy",".35em"),y.transition().duration(1e3).text(function(t){var r=e(t);return r>s?Math.round(r)+"%":""}).style("opacity",function(t){return t.value/p*100>s?1:0}).attrTween("transform",function(t){var e=this.getBBox();this._current=this._current||t;var r=d3.interpolate(this._current,t);return this._current=r(0),function(t){var n=r(t),i=u.centroid(n);return i[0]=i[0]-e.width/2,"translate("+i+")"}}),y.exit().remove()}};return t});
+var d3;
+
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory();
+  } else {
+    // Browser globals (root is window)
+    root.LabeledPie = factory();
+  }
+}(this, function () {
+
+  var LabeledPie = function (parent) {
+
+    var svg = d3.select(parent)
+      .append("svg")
+      .append("g");
+
+    this.svg = svg;
+
+    this.svgWidth = 450;
+    this.svgHeight = 190;
+
+    d3.select(parent).select("svg").attr("width", this.svgWidth).attr("height", this.svgHeight);
+
+    this.svg.append("g")
+      .attr("class", "slices");
+    this.svg.append("g")
+      .attr("class", "labels");
+    this.svg.append("g")
+      .attr("class", "innerLabels");
+    this.svg.append("g")
+      .attr("class", "lines");
+
+    this.width = 160;
+    this.height = 160;
+    this.radius = Math.min(this.width, this.height) / 2;
+
+    this.pie = d3.layout.pie()
+      .sort(null);
+
+    this.arc = d3.svg.arc()
+      .outerRadius(this.radius * 0.8)
+      .innerRadius(this.radius * 0.4);
+
+    this.outerArc = d3.svg.arc()
+      .innerRadius(this.radius * 0.85)
+      .outerRadius(this.radius * 0.85);
+
+    this.edgeArc = d3.svg.arc()
+      .innerRadius(this.radius * 0.8)
+      .outerRadius(this.radius * 0.8);
+
+    this.minimumDisplayedPercentage = 6;
+
+    this.svg.attr("transform", "translate(" + this.svgWidth / 2 + "," + this.svgHeight / 2 + ")");
+
+    this.minimumDisplayedLabel = 3;
+
+    function pointToArray(point) {
+      return [point.x, point.y];
+    }
+
+    function transitionLine(index, oldY, newY) {
+      var delta = newY - oldY;
+      var points;
+      var pt0;
+      var pt1;
+      var pt2;
+      var lineElement;
+      svg.select(".lines").selectAll("polyline").each(function (d, i) {
+        if (i === index) {
+          lineElement = this;
+        }
+      });
+      points = lineElement.points;
+      pt0 = pointToArray(points.getItem(0));
+      pt1 = pointToArray(points.getItem(1));
+      pt2 = pointToArray(points.getItem(2));
+
+      d3.select(lineElement)
+        .transition().duration(500)
+        .attrTween("points", function (d) {
+          return function (t) {
+            pt1[1] = oldY + t * delta;
+            pt2[1] = oldY + t * delta;
+            return [pt0, pt1, pt2];
+          };
+        });
+    }
+
+    function transitionOverlappingLabel(textElement, newY) {
+      var matrix = textElement.transform.baseVal.getItem(0).matrix;
+      var oldY = matrix.f;
+      var pos = [matrix.e, matrix.f];
+      var delta = newY - oldY;
+
+      d3.select(textElement)
+        .transition().duration(500)
+        .attrTween("transform", function (d) {
+          return function (t) {
+            pos[1] = oldY + t * delta;
+            return "translate(" + pos + ")";
+          };
+        });
+    }
+
+    function adjustOverlappingLabels(labels) {
+      var lastY = Infinity; // matrix.f is y
+      var matrix;
+      var currentY;
+      var i;
+      for (i = 0; i < labels.length; i++) {
+        matrix = labels[i].transform.baseVal.getItem(0).matrix;
+        currentY = matrix.f;
+        var height = labels[i].getBBox().height;
+        if (currentY > (lastY - height)) {
+          currentY = lastY - height;
+          transitionOverlappingLabel(labels[i], currentY);
+          transitionLine(+labels[i].dataset.index, matrix.f, currentY);
+        }
+        lastY = currentY;
+      }
+    }
+
+    function getOverlappingLabels() {
+      var leftLabels = [];
+      var rightLabels = [];
+
+      svg.select(".labels").selectAll("text").each(function (d, index) {
+        var str = this.style.cssText;
+        if (str && !str.match("opacity: 0")) { // only look at visible labels
+          this.dataset.index = index;
+          if (str.match("text-anchor: end")) {
+            leftLabels.push(this);
+          } else {
+            rightLabels.push(this);
+          }
+        }
+      });
+      try {
+        adjustOverlappingLabels(leftLabels);
+        adjustOverlappingLabels(rightLabels.reverse());
+      } catch (e) {
+
+      }
+      return true; // return true to stop timer from firing again
+    }
+
+
+    LabeledPie.prototype.setLabels = function (labels) {
+      this.labels = labels;
+    }
+
+    LabeledPie.prototype.setColorScale = function (color) {
+      this.color = color;
+    }
+
+
+
+    LabeledPie.prototype.change = function (data) {
+
+      var radius = this.radius;
+      var labels = this.labels;
+      var minimumDisplayedPercentage = this.minimumDisplayedPercentage;
+      var arc = this.arc;
+      var outerArc = this.outerArc;
+      var edgeArc = this.edgeArc;
+      var svg = this.svg;
+      var pie = this.pie;
+      var color = this.color;
+      var minimumDisplayedLabel = this.minimumDisplayedLabel;
+
+
+      var sum = d3.sum(data);
+
+      function getPercentage(d) {
+        return Math.round(d.value / sum * 100);
+      }
+
+      function getTitle(d, i) {
+        return labels[i] + ": " + d.value + ", " + getPercentage(d);
+      }
+
+      /* ------- PIE SLICES -------*/
+      var slice = svg.select(".slices").selectAll("path.slice")
+        .data(pie(data));
+
+      slice.enter()
+        .insert("path")
+        .style("fill", function (d, i) {
+          return color(i);
+        })
+        .attr("class", "slice");
+
+      /*
+          slice.append("svg:title")
+                 .text(function(d, i) { 
+                  return getTitle(d, i); })
+      */
+
+      slice
+        .transition().duration(1000)
+        .attrTween("d", function (d) {
+          this._current = this._current || d;
+          var interpolate = d3.interpolate(this._current, d);
+          this._current = interpolate(0);
+          return function (t) {
+            return arc(interpolate(t));
+          };
+        })
+
+      slice.exit()
+        .remove();
+
+      /* ------- TEXT LABELS -------*/
+
+      var text = svg.select(".labels").selectAll("text")
+        .data(pie(data));
+
+      text.enter()
+        .append("text")
+        .attr("dy", ".35em")
+        .text(function (d, i) {
+          return labels[i];
+        });
+
+      function midAngle(d) {
+        return d.startAngle + (d.endAngle - d.startAngle) / 2;
+      }
+
+      text.transition().duration(1000)
+        .style("opacity", function (d) {
+          return getPercentage(d) < minimumDisplayedLabel ? 0 : 1;
+        })
+        .attrTween("transform", function (d) {
+          this._current = this._current || d;
+          var interpolate = d3.interpolate(this._current, d);
+          this._current = interpolate(0);
+          return function (t) {
+            var d2 = interpolate(t);
+            var pos = outerArc.centroid(d2);
+            pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+            return "translate(" + pos + ")";
+          };
+        })
+        .styleTween("text-anchor", function (d) {
+          this._current = this._current || d;
+          var interpolate = d3.interpolate(this._current, d);
+          this._current = interpolate(0);
+          return function (t) {
+            var d2 = interpolate(t);
+            return midAngle(d2) < Math.PI ? "start" : "end";
+          };
+        });
+
+      text.exit()
+        .remove();
+
+      d3.timer(getOverlappingLabels, 1000);
+
+
+      /* ------- SLICE TO TEXT POLYLINES -------*/
+
+      var polyline = svg.select(".lines").selectAll("polyline")
+        .data(pie(data));
+
+      polyline.enter()
+        .append("polyline");
+
+      polyline.transition().duration(1000)
+        .style("opacity", function (d) {
+          return getPercentage(d) < minimumDisplayedLabel ? 0 : 0.3;
+        })
+        .attrTween("points", function (d) {
+          this._current = this._current || d;
+          var interpolate = d3.interpolate(this._current, d);
+          this._current = interpolate(0);
+          return function (t) {
+            var d2 = interpolate(t);
+            var pos = outerArc.centroid(d2);
+            pos[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+            return [edgeArc.centroid(d2), outerArc.centroid(d2), pos];
+          };
+        });
+
+      polyline.exit()
+        .remove();
+
+      /* ------- PERCENTAGE LABELS -------*/
+
+      var percent = svg.select(".innerLabels").selectAll("text")
+        .data(pie(data));
+
+      percent.enter()
+        .insert("text")
+        .attr("dy", ".35em");
+
+      percent.transition().duration(1000)
+        /*
+              .tween("text", function(d) {
+                  this._current = this._current || d;
+                  var interpolate = d3.interpolate(this._current, d);
+                  this._current = interpolate(0);
+                  return function(t) {
+                      var d2 = interpolate(t);
+                      var percent = getPercentage(d2);
+                      this.textContent = percent > minimumDisplayedPercentage ? Math.round(percent) + "%" : "";
+
+                  };
+              })
+*/
+        .text(function (d) {
+          var percent = getPercentage(d);
+          return percent > minimumDisplayedPercentage ? Math.round(percent) + "%" : "";
+        })
+        .style("opacity", function (d) {
+          return d.value / sum * 100 > minimumDisplayedPercentage ? 1 : 0;
+        })
+        .attrTween("transform", function (d, i) {
+          var bbox = this.getBBox();
+          this._current = this._current || d;
+          var interpolate = d3.interpolate(this._current, d);
+          this._current = interpolate(0);
+          return function (t) {
+            var d2 = interpolate(t);
+            var pos = arc.centroid(d2);
+            pos[0] = pos[0] - bbox.width / 2;
+            //pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+            return "translate(" + pos + ")";
+          };
+        });
+
+      percent.exit()
+        .remove();
+
+
+    };
+  };
+
+  return LabeledPie;
+}));
