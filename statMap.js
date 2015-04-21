@@ -269,14 +269,14 @@ var annyang;
     statIndex: 6,
     statType: "income",
     valueObject: ratioValueObject,
-    center: "94560",
+    center: "94111",
     pathKey: "Bay_Area",
     dataKey: "GEOID10",
     dataFilename: "data/allStats.json",
     geoFilename: "Bay_Area_Cities_topo.json"
   };
 
-  var statMap = new ZipCodeMap(".right-side", createLegend, getTitle, showDetails, deselectMap, zipCodeMapConfig);
+  var statMap = new ZipCodeMap(".right-side", zipCodeMapConfig, createLegend, getTitle, showDetails, deselectMap);
   setPieLabels(pieLabelConfig, "income");
 
   d3.timer(function () {
