@@ -15,6 +15,13 @@ var d3;
   }
 }(this, function () {
 
+  /**
+   * 
+   * @name  LabeledPie
+   * @constructor
+   * @param {String} parent - Selector for the parent DOM element.
+   * @param {Object} config - Configuration object
+   */
   var LabeledPie = function (parent, config) {
 
     var svg = d3.select(parent)
@@ -123,7 +130,7 @@ var d3;
         if (currentY > (lastY - height)) {
           currentY = lastY - height;
           transitionOverlappingLabel(labels[i], currentY);
-          transitionLine(+labels[i].dataset.index, matrix.f, currentY);
+          transitionLine(+labels[i].index, matrix.f, currentY);
         }
         lastY = currentY;
       }
@@ -136,7 +143,7 @@ var d3;
       svg.select(".labels").selectAll("text").each(function (d, index) {
         var str = this.style.cssText;
         if (str && !str.match("opacity: 0")) { // only look at visible labels
-          this.dataset.index = index;
+          this.index = index;
           if (str.match("text-anchor: end")) {
             leftLabels.push(this);
           } else {
@@ -153,14 +160,32 @@ var d3;
       return true; // return true to stop timer from firing again
     }
 
+
+    /**
+     * @name  LabeledPie#setLabels
+     * @method
+     * @param {Array} labels - Strings for wedge labels
+     */
     LabeledPie.prototype.setLabels = function (labels) {
       this.labels = labels;
     };
 
+    /**
+     * @name  LabeledPie#setColorScale
+     * @method
+     * @param {d3.scale} color - color scale for wedges
+     */
     LabeledPie.prototype.setColorScale = function (color) {
       this.color = color;
     };
 
+    /**
+     * Transition the pie to the new data
+     * 
+     * @name  LabeledPie#change
+     * @method
+     * @param {Array} data - Array of integer pie data
+     */
     LabeledPie.prototype.change = function (data) {
 
       var radius = this.radius;
